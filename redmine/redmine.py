@@ -110,7 +110,12 @@ class Project(Redmine_Item):
 		self.__dict__['issues'] = Redmine_Items_Manager(redmine, Issue,
 													query_path='/projects/%s/issues.json' % self.id,
 													item_new_path='/projects/%s/issues.json' % self.id )
+
+		self.__dict__['versions'] = Redmine_Items_Manager(redmine, Version,
+													query_path='/projects/%s/versions.json' % self.id,
+													item_new_path='/projects/%s/versions.json' % self.id )
 		
+        
 		# Manage time entries for this project
 		self.__dict__['time_entries'] = Redmine_Items_Manager(redmine, Time_Entry,
 													query_path='/projects/%s/time_entries.json' % self.id,
@@ -123,6 +128,52 @@ class Project(Redmine_Item):
 			
 	def __repr__(self):
 		return '<Redmine project #%s "%s">' % (self.id, self.identifier)
+
+
+class Version(Redmine_Item):
+	'''Object representing a Redmine issue.'''
+	# data hints:
+	id = None
+	description = None
+	status = None
+	project = None
+	sharing = None
+	updated_on = None
+	
+	_protected_attr = ['id',
+					   'updated_on',
+					   'updated_on',
+					   ]
+
+	_field_type = {
+		'parent':'project',
+		'updated_on':'datetime',
+		}
+
+
+	# How to communicate this info to/from the server
+	_query_container = 'versions'
+	_query_path = '/versions.json'
+	_item_path = '/versions/%s.json'
+	_item_new_path = '/versions.json'
+
+
+	def __init__(self, redmine, *args, **kw_args):
+		# Override init to also set up sub-queries
+		# Call the base-class init
+		super(Version, self).__init__(redmine, *args, **kw_args)
+
+	def __str__(self):
+		return '<Redmine version #%s, "%s">' % (self.id, self.subject)
+
+	def save(self, notes=None):
+		'''Save all changes back to Redmine with optional notes.'''
+		# Capture the notes if given
+		if notes:
+			self._changes['notes'] = notes
+		
+		# Call the base-class save function
+		super(Version, self).save()
 
 
 class Issue(Redmine_Item):
